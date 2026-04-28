@@ -49,11 +49,20 @@
 
         }
 
+        let myCurrentLocationMarker = null
+
         async function main() {
-            const userLocation = await getUsersCurrentLocation();
-            L.marker([userLocation.latitude, userLocation.longitude])
-                .addTo(map)
-                .bindPopup('You are here')
+            setInterval(async () => {
+                const { latitude, longitude } = await getUsersCurrentLocation()
+                if (!myCurrentLocationMarker) {
+                    myCurrentLocationMarker = L.marker([latitude, longitude])
+                        .addTo(map)
+                        .bindPopup('You are here')
+                } else {
+                    myCurrentLocationMarker.setLatLng([latitude, longitude])
+                }
+            }, 10 * 1000)
+
         }
 
         window.addEventListener('load', main)
