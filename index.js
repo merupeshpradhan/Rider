@@ -16,6 +16,29 @@ async function main() {
   const kafkaProducer = kafkaClient.producer();
   await kafkaProducer.connect();
 
+  const kafkaConsumer = kafkaClient.consumer({
+    groupId: `socket-server-${PORT}`,
+  });
+  await kafkaConsumer.connect();
+
+  await kafkaConsumer.subscribe({
+    topics: ["location-updates"],
+    fromBeginning: true,
+  });
+
+  kafkaConsumer.run({
+    eachMessage: async ({ topic, partition, message, heartbeat }) => {
+      const data = JSON.parse(message.value.toString());
+      console.log(`KafkaConsumer Data Received`, { data });
+      io.emit("server:location:updates", {
+        id: data.id,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      });
+      await heartbeat();
+    },
+  });
+
   io.attach(server);
 
   io.on("connection", (socket) => {

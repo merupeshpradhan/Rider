@@ -24,6 +24,20 @@
         var map = L.map('map').setView([51.505, -0.09], 13);
         // var map = L.map('map').setView([21.8364, 84.3936], 14);
         // var map = L.map('map').setView([21.7483, 84.3435], 13);
+
+        const remoteMarkers = new Map();
+
+        socket.on('server:location:updates', (data) => {
+            const { id, latitude, longitude } = data
+            if (!remoteMarkers.has(id)) {
+                const marker = L.marker([latitude, longitude]).addTo(map).bindPopup(id)
+                remoteMarkers.set(id, marker)
+            } else {
+                const existingMarker = remoteMarkers.get(id)
+                existingMarker.setLatLng([latitude, longitude])
+            }
+        })
+
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
